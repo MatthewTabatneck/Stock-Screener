@@ -19,7 +19,7 @@ docker-build:
 	docker build -t stock-screener:local .
 
 docker-run-api:
-	docker run --env-file .env -p 8080:8080 stock-screener:local api
+	docker run --env-file .env.example -p 8080:8080 stock-screener:local api
 
 docker-run-worker:
-	docker run --env-file .env stock-screener:local worker
+	docker run --env-file .env.example stock-screener:local worker

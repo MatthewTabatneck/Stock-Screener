@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db:
     image: postgres:16
@@ -9,9 +8,33 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: screener
     ports:
-      - "5432:5432"
+      - "5433:5432" # host:container (keeps 5432 free on host)
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    container_name: screener-api
+    command: ["api"]              # make sure your image runs the API with this arg
+    ports:
+      - "8080:8080"
+    env_file: .env.example
+    environment:
+      # Inside containers, use the service name "db" and container port 5432
+      DATABASE_URL: postgres://postgres:password@db:5432/screener?sslmode=disable
+    depends_on:
+      - db
+
+  # Optional worker
+  worker:
+    build: .
+    container_name: screener-worker
+    command: ["worker"]
+    env_file: .env.example
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432/screener?sslmode=disable
+    depends_on:
+      - db
 
 volumes:
   pgdata:
