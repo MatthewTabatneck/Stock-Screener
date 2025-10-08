@@ -18,7 +18,7 @@ services:
     command: ["api"]              # make sure your image runs the API with this arg
     ports:
       - "8080:8080"
-    env_file: .env.example
+    env_file: .env
     environment:
       # Inside containers, use the service name "db" and container port 5432
       DATABASE_URL: postgres://postgres:password@db:5432/screener?sslmode=disable
@@ -30,7 +30,7 @@ services:
     build: .
     container_name: screener-worker
     command: ["worker"]
-    env_file: .env.example
+    env_file: .env
     environment:
       DATABASE_URL: postgres://postgres:password@db:5432/screener?sslmode=disable
     depends_on:
