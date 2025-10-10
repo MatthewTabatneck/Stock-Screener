@@ -1,3 +1,6 @@
+include .env
+export
+
 .PHONY: run-api run-worker migrate-up migrate-down lint docker-build docker-run-api docker-run-worker
 
 run-api:
