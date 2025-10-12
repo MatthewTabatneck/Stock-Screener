@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: screener
     ports:
-      - "5433:5432" # host:container (keeps 5432 free on host)
+      - "5432:5432" # host:container (keeps 5432 free on host)
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -21,7 +21,7 @@ services:
     env_file: .env
     environment:
       # Inside containers, use the service name "db" and container port 5432
-      DATABASE_URL: postgres://postgres:password@db:5433/screener?sslmode=disable
+      DATABASE_URL: postgres://postgres:password@db:5432/screener?sslmode=disable
     depends_on:
       - db
 
@@ -32,7 +32,7 @@ services:
     command: ["worker"]
     env_file: .env
     environment:
-      DATABASE_URL: postgres://postgres:password@db:5433/screener?sslmode=disable
+      DATABASE_URL: postgres://postgres:password@db:5432/screener?sslmode=disable
     depends_on:
       - db
 
