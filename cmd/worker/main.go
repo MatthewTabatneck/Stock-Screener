@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/MatthewTabatneck/stock-screener/internal/config"
+	"github.com/MatthewTabatneck/stock-screener/internal/store"
 	_ "github.com/lib/pq"
 )
 
@@ -24,5 +25,8 @@ func main() {
 	}
 	defer db.Close()
 
-	tickers, err := GetAllTickers(ctx)
+	pulledSymbols, err := store.GetAllTickers(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -2,6 +2,6 @@ package store
 
 import "context"
 
-func GetAllTickers(ctx context.Context) (tickers []string, err error) {
+func GetAllTickers(ctx context.Context) (pulledSymbols []string, err error) {
 	return
 }
