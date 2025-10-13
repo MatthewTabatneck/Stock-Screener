@@ -1,8 +1,13 @@
 -- +goose Up
 CREATE TABLE tickers (
   symbol TEXT PRIMARY KEY,
-  created_at TIMESTAMPTZ DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  is_processed BOOLEAN NOT NULL DEFAULT true
 );
+
+CREATE INDEX IF NOT EXISTS idx_tickers_processed
+    ON tickers (is_processed);
+
 
 CREATE TABLE snapshots (
   id BIGSERIAL PRIMARY KEY,

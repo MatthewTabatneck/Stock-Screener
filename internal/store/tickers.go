@@ -20,9 +20,12 @@ func InsertTickers(db *sql.DB, tickers []string) {
 
 	//Insert missing ones
 	_, err = db.Exec(`
-        INSERT INTO tickers (symbol)
-        SELECT UNNEST($1::text[])
-        ON CONFLICT (symbol) DO NOTHING;
+        INSERT INTO tickers (symbol, updated_at, is_processed)
+		SELECT UNNEST($1::text[]), now(), false
+		ON CONFLICT (symbol)
+		DO UPDATE SET
+			updated_at   = EXCLUDED.updated_at,
+			is_processed = false;
     `, pq.Array(tickers))
 	if err != nil {
 		log.Fatal(err)
