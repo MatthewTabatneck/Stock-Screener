@@ -27,7 +27,7 @@ func main() {
 		log.Println("No .env file found, using environment variables")
 	}
 
-	file, err := os.Open("sp500_tickers.csv")
+	file, err := os.Open("tickers.csv")
 	if err != nil {
 		fmt.Println("Error opening file: ", err)
 		return
