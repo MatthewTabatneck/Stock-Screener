@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/MatthewTabatneck/stock-screener/internal/config"
+	"github.com/MatthewTabatneck/stock-screener/internal/provider"
 	"github.com/MatthewTabatneck/stock-screener/internal/store"
 	_ "github.com/lib/pq"
 )
@@ -59,8 +60,12 @@ func run(ctx context.Context) error {
 		break
 	}
 
-	/////////////////////////////////////////////////////////////////////
-
 	log.Printf("loaded %d tickers\n", len(symbols))
+	log.Println(symbols)
+
+	err = provider.GetAlpha(ctx, cfg, symbols)
+	if err != nil {
+		return err
+	}
 	return nil
 }
