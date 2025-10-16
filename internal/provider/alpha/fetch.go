@@ -1,6 +1,9 @@
-package models
+package alpha
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Snapshot struct {
 	Symbol    string    `json:"symbol"`
@@ -12,20 +15,6 @@ type Snapshot struct {
 	Status    string    `json:"status"` // "OK", "TIMEOUT", "ERROR", "RATELIMIT"
 }
 
-type Result struct {
-	Sym  string
-	Snap Snapshot
-	Err  error
-}
+func FetchAlpha(ctx context.Context, symbol, apiKey string) (Snapshot, error) {
 
-func (r Result) SnapOrFailure(source string) Snapshot {
-	if r.Err == nil {
-		return r.Snap
-	}
-	return Snapshot{
-		Symbol:    r.Sym,
-		Source:    source,
-		Status:    "ERROR",
-		FetchedAt: time.Now().UTC(),
-	}
 }
