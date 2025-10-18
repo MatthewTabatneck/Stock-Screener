@@ -37,12 +37,18 @@ func run(ctx context.Context) error {
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
 
+	store.SetDB(db)
+
 	pingCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	if err := db.PingContext(pingCtx); err != nil {
 		return err
 	}
 
+	err = store.CleanupProcessedTickers(ctx, db)
+	if err != nil {
+		return err
+	}
 	// Keep polling until we find unprocessed tickers
 	var symbols []string
 	for {
@@ -67,5 +73,6 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

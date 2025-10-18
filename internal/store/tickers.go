@@ -1,33 +1,50 @@
 package store
 
 import (
+	"context"
 	"database/sql"
-	"log"
 
 	"github.com/lib/pq"
 )
 
-func InsertTickers(db *sql.DB, tickers []string) {
-	//Delete rows not in the new list
-	_, err := db.Exec(`
-        WITH new(symbol) AS (SELECT UNNEST($1::text[]))
-        DELETE FROM tickers t
-        WHERE NOT EXISTS (SELECT 1 FROM new n WHERE n.symbol = t.symbol);
-    `, pq.Array(tickers))
+func InsertTickers(ctx context.Context, db *sql.DB, tickers []string) error {
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		log.Fatal(err)
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+
+	// Create temp list of new tickers
+	if _, err := tx.ExecContext(ctx, `CREATE TEMP TABLE _new(symbol text) ON COMMIT DROP`); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO _new(symbol) SELECT UNNEST($1::text[])`, pq.Array(tickers)); err != nil {
+		return err
 	}
 
-	//Insert missing ones
-	_, err = db.Exec(`
-        INSERT INTO tickers (symbol, updated_at, is_processed)
-		SELECT UNNEST($1::text[]), now(), false
-		ON CONFLICT (symbol)
-		DO UPDATE SET
+	// Upsert and reset queue state for incoming tickers
+	if _, err := tx.ExecContext(ctx, `
+		INSERT INTO tickers (symbol, updated_at, is_processed)
+		SELECT symbol, now(), false FROM _new
+		ON CONFLICT (symbol) DO UPDATE SET
 			updated_at   = EXCLUDED.updated_at,
 			is_processed = false;
-    `, pq.Array(tickers))
-	if err != nil {
-		log.Fatal(err)
+	`); err != nil {
+		return err
 	}
+
+	// ✅ Cleanup:
+	// Delete any ticker that has been processed (regardless of snapshot existence)
+	// and is not in the new upload list.
+	// Snapshots remain safe because the FK is now RESTRICT (no cascade).
+	if _, err := tx.ExecContext(ctx, `
+    DELETE FROM tickers t
+    WHERE t.is_processed = true
+      AND NOT EXISTS (SELECT 1 FROM _new n WHERE n.symbol = t.symbol)
+      AND NOT EXISTS (SELECT 1 FROM snapshots s WHERE s.symbol = t.symbol);
+`); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }

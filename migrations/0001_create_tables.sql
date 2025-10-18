@@ -16,6 +16,7 @@ CREATE TABLE snapshots (
   price NUMERIC(18,6),
   change_pct NUMERIC(9,4),
   volume BIGINT,
+  latest_trading_day DATE,
   source TEXT NOT NULL,
   status TEXT CHECK (status IN ('OK','TIMEOUT','ERROR'))
 );
