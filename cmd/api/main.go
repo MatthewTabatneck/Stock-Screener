@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/MatthewTabatneck/stock-screener/internal/screener"
 	"github.com/MatthewTabatneck/stock-screener/internal/store"
@@ -12,17 +15,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// func main() {
-// 	mux := http.NewServeMux()
-// 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-// 		fmt.Fprintln(w, "ok")
-// 	})
-// 	port := "8080"
-// 	log.Printf("listening on :%s", port)
-// 	log.Fatal(http.ListenAndServe(":"+port, mux))
-// }
-
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
 	}
@@ -54,7 +50,7 @@ func main() {
 	if err = db.Ping(); err != nil {
 		log.Fatal(err)
 	}
-
-	store.InsertTickers(db, tickers)
+	store.SetDB(db)
+	store.InsertTickers(ctx, db, tickers)
 
 }
