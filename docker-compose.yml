@@ -15,7 +15,7 @@ services:
   api:
     build: .
     container_name: screener-api
-    command: ["api"]              # make sure your image runs the API with this arg
+    command: ["api"]
     ports:
       - "8080:8080"
     env_file: .env
